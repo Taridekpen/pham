@@ -9,6 +9,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 near-sdk = "4.0.0-pre.4"
+wee_alloc = "0.4.5"
+borsh = "0.8.0"
 
 [profile.release]
 codegen-units = 1

@@ -1,34 +1,40 @@
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{log, near_bindgen};
-
-const DEFAULT_MESSAGE: &str = "Hello world";
+use near_sdk::{near_bindgen, env};
+use std::collections::HashMap;
+use borsh::{BorshDeserialize, BorshSerialize};
 
 #[near_bindgen]
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Pharmacy {
+    patients: HashMap<String, PatientData>,
+    last_patient_id: u64,
+}
+
 #[derive(BorshDeserialize, BorshSerialize)]
-pub struct Contract {
-    message: String,
+#[derive(Clone)]
+pub struct PatientData {
+    name: String,
+    age: u8,
+    address: String,
+    phone_number: String,
+    diagnosis: String,
 }
 
-
-impl Default for Contract{
-
-    fn default() -> Self{
-        Self{message: DEFAULT_MESSAGE.to_string()}
+impl Pharmacy {
+    pub fn register_patient(&mut self, name: String, age: u8, address: String, phone_number: String, diagnosis: String) -> String {
+        let patient_id = format!("patient_{}", self.last_patient_id + 1);
+        self.patients.insert(patient_id.clone(), PatientData {
+            name,
+            age,
+            address,
+            phone_number,
+            diagnosis,
+        });
+        self.last_patient_id += 1;
+        env::log_str(std::str::from_utf8(format!("Patient registered with ID: {}", patient_id).as_bytes()).unwrap());
+        patient_id
     }
 
-}
-
-#[near_bindgen]
-impl Contract {
-    
-    pub fn get_message(&self) -> String {
-        
-        return self.message.clone();
-    }
-
-    pub fn set_message(&mut self, message: String) {
-        // Use env::log to record logs permanently to the blockchain!
-        log!("Saving greeting {}", message);
-        self.message = message;
+    pub fn get_patient_data(&self, patient_id: String) -> Option<PatientData> {
+        self.patients.get(&patient_id).cloned()
     }
 }
